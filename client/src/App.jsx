@@ -1,22 +1,33 @@
 import React, { useContext } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthContext } from "./context/AuthContext";
-import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import Welcome from "./pages/Welcome";
 
-const App = () => {
-  const { user } = useContext(AuthContext); // Access user from AuthContext
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useContext(AuthContext);
 
+  if (loading) {
+    return <div>Loading...</div>; // Show a loading indicator while restoring state
+  }
+
+  return user ? children : <Navigate to="/login" />;
+};
+
+const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
         <Route
           path="/welcome"
-          element={user ? <Welcome /> : <Navigate to="/signup" />}
+          element={
+            <ProtectedRoute>
+              <Welcome />
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </Router>

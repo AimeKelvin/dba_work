@@ -1,45 +1,43 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export const useAuth = () => useContext(AuthContext); // <-- ADD THIS LINE
+
+const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
     const username = localStorage.getItem("username");
-    if (token && username) {
-      setUser({ token, username });
+
+    if (token && role && username) {
+      setUser({ token, role, username });
     }
+    setLoading(false);
   }, []);
 
-  const login = (token, username) => {
+  const login = (token, role, username) => {
     localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
     localStorage.setItem("username", username);
-    setUser({ token, username });
-    navigate("/welcome");
+    setUser({ token, role, username });
   };
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
     localStorage.removeItem("username");
     setUser(null);
-    navigate("/login");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export default AuthProvider;
